@@ -60,6 +60,7 @@ func main() {
 	var poller telebot.Poller
 
 	if config.webhookUrl != "" {
+		log.Print("using webhook")
 		poller = &telebot.Webhook{
 			Listen:   ":" + config.port,
 			Endpoint: &telebot.WebhookEndpoint{PublicURL: config.webhookUrl},
