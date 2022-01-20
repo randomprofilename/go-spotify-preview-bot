@@ -73,7 +73,7 @@ func main() {
 		Poller: poller,
 	})
 
-	if config.webhookUrl != "" {
+	if config.webhookUrl == "" {
 		b.RemoveWebhook()
 	}
 

@@ -3,12 +3,14 @@ package handlers
 import (
 	"fmt"
 	"go-spotify-track-preview-bot/spotify_api"
+	"log"
 
 	tb "gopkg.in/telebot.v3"
 )
 
 func Register(b *tb.Bot, spotifyClient *spotify_api.Client) {
 	b.Handle(tb.OnText, func(c tb.Context) (err error) {
+		log.Println("Got a message")
 		trackId, err := spotifyClient.ParseTrackIdFromUrl(c.Text())
 		if err != nil || trackId == "" {
 			return err
