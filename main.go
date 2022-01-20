@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"gopkg.in/tucnak/telebot.v2"
+	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 type appConfig struct {
@@ -57,23 +57,21 @@ func createConfig() appConfig {
 func main() {
 	config := createConfig()
 
-	var poller telebot.Poller
+	var poller tb.Poller
 
 	if config.webhookUrl != "" {
-		log.Print("using webhook, " + ":" + config.port)
-		poller = &telebot.Webhook{
+		poller = &tb.Webhook{
 			Listen:   ":" + config.port,
-			Endpoint: &telebot.WebhookEndpoint{PublicURL: config.webhookUrl},
+			Endpoint: &tb.WebhookEndpoint{PublicURL: config.webhookUrl},
 		}
 	} else {
-		poller = &telebot.LongPoller{Timeout: 10 * time.Second}
+		poller = &tb.LongPoller{Timeout: 10 * time.Second}
 	}
 
-	b, err := telebot.NewBot(telebot.Settings{
+	b, err := tb.NewBot(tb.Settings{
 		Token:  config.token,
 		Poller: poller,
 	})
-
 	if config.webhookUrl == "" {
 		b.RemoveWebhook()
 	}
