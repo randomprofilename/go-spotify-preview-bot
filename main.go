@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
-	"gopkg.in/telebot.v3"
+	"gopkg.in/tucnak/telebot.v2"
 )
 
 type appConfig struct {

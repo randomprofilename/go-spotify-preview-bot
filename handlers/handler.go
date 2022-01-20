@@ -5,13 +5,13 @@ import (
 	"go-spotify-track-preview-bot/spotify_api"
 	"log"
 
-	tb "gopkg.in/telebot.v3"
+	tb "gopkg.in/tucnak/telebot.v2"
 )
 
 func Register(b *tb.Bot, spotifyClient *spotify_api.Client) {
-	b.Handle(tb.OnText, func(c tb.Context) (err error) {
+	b.Handle(tb.OnText, func(m tb.Message) (err error) {
 		log.Println("Got a message")
-		trackId, err := spotifyClient.ParseTrackIdFromUrl(c.Text())
+		trackId, err := spotifyClient.ParseTrackIdFromUrl(m.Text)
 		if err != nil || trackId == "" {
 			return err
 		}
@@ -32,7 +32,7 @@ func Register(b *tb.Bot, spotifyClient *spotify_api.Client) {
 			track.TrackUrl,
 		)
 
-		err = c.Send(&tb.Photo{
+		b.Send(m.Chat, &tb.Photo{
 			File:    tb.FromURL(track.AlbumPicUrl),
 			Caption: text,
 		}, tb.ModeMarkdown)
