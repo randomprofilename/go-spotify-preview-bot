@@ -93,7 +93,12 @@ func (c *Client) GetTrack(trackId string) (*Track, error) {
 	rawTrack := &trackInfoResponse{}
 	err = json.NewDecoder(resp.Body).Decode(rawTrack)
 
-	track := &Track{
+	albumPicUrl := ""
+	if len(rawTrack.Album.Images) > 0 {
+		albumPicUrl = rawTrack.Album.Images[0].Url
+	}
+
+	return &Track{
 		Artists:   parseArtists(rawTrack),
 		Title:     rawTrack.Name,
 		Duration:  parseDuration(rawTrack.DurationMs),
@@ -101,9 +106,7 @@ func (c *Client) GetTrack(trackId string) (*Track, error) {
 		Year:      rawTrack.Album.ReleaseDate,
 
 		AlbumUrl:    rawTrack.Album.Urls.Spotify,
-		AlbumPicUrl: rawTrack.Album.Images[0].Url,
+		AlbumPicUrl: albumPicUrl,
 		TrackUrl:    rawTrack.Urls.Spotify,
-	}
-
-	return track, err
+	}, err
 }
