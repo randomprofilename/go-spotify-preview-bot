@@ -9,16 +9,18 @@ import (
 )
 
 func Register(b *tb.Bot, spotifyClient *spotify_api.Client) {
-	b.Handle(tb.OnText, func(m tb.Message) (err error) {
+	b.Handle(tb.OnText, func(m tb.Message) {
 		log.Println("Got a message")
 		trackId, err := spotifyClient.ParseTrackIdFromUrl(m.Text)
 		if err != nil || trackId == "" {
-			return err
+			fmt.Println(err.Error())
+			return
 		}
 
 		track, err := spotifyClient.GetTrack(trackId)
 		if err != nil {
-			return err
+			fmt.Println(err.Error())
+			return
 		}
 
 		text := fmt.Sprintf(
@@ -36,7 +38,5 @@ func Register(b *tb.Bot, spotifyClient *spotify_api.Client) {
 			File:    tb.FromURL(track.AlbumPicUrl),
 			Caption: text,
 		}, tb.ModeMarkdown)
-
-		return
 	})
 }

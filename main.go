@@ -90,6 +90,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	if config.webhookUrl == "" {
+		b.RemoveWebhook()
+	}
+
 	handlers.Register(b, spotifyClient)
 
 	b.Start()
