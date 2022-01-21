@@ -58,8 +58,7 @@ func parseDuration(ms int) string {
 	msInMinute := 1000 * 60
 	seconds := ms % msInMinute / 1000
 	minutes := ms / msInMinute
-
-	return fmt.Sprintf("%v:%v", minutes, seconds)
+	return fmt.Sprintf("%d:%02d", minutes, seconds)
 }
 
 func parseArtists(rawTrack *trackInfoResponse) string {
