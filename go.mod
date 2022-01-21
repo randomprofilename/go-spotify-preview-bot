@@ -5,6 +5,5 @@ go 1.16
 
 require (
 	github.com/joho/godotenv v1.3.0
-	github.com/pkg/errors v0.9.1 // indirect
-	gopkg.in/tucnak/telebot.v2 v2.3.5
+	gopkg.in/telebot.v3 v3.0.0-20220119142205-519415f46cda
 )
