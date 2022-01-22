@@ -14,6 +14,8 @@ type Playlist struct {
 	PlaylistPicUrl string
 	PlaylistUrl    string
 	Total          int
+
+	Owner string
 }
 
 type playlistInfoResponse struct {
@@ -34,6 +36,9 @@ type playlistInfoResponse struct {
 
 	Name        string `json:"name"`
 	Description string `json:"description"`
+	Owner       struct {
+		OwnerName string `json:"display_name"`
+	} `json:"owner"`
 }
 
 func getPlaylistUrl(playlistId string) string {
@@ -84,5 +89,6 @@ func (c *Client) GetPlaylist(playlistId string) (*Playlist, error) {
 		PlaylistPicUrl: pic,
 		PlaylistUrl:    rawPlaylist.Urls.Spotify,
 		Total:          rawPlaylist.Tracks.Total,
+		Owner:          rawPlaylist.Owner.OwnerName,
 	}, err
 }

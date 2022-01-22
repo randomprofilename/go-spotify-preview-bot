@@ -17,7 +17,12 @@ func (mh *MessageHandler) HandlePlaylist(c tb.Context, playlistId string) error 
 
 	sb := strings.Builder{}
 
-	sb.WriteString(fmt.Sprintf("🎶 *%v* \n", playlist.Name))
+	if playlist.Owner != "" {
+		sb.WriteString(fmt.Sprintf("🎶 *%v* by _%v_\n", playlist.Name, playlist.Owner))
+	} else {
+		sb.WriteString(fmt.Sprintf("🎶 *%v* \n", playlist.Name))
+	}
+
 	if playlist.Description != "" {
 		sb.WriteString(fmt.Sprintf("💬 _%v_ \n", playlist.Description))
 	}
