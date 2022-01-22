@@ -94,7 +94,9 @@ func main() {
 		b.RemoveWebhook()
 	}
 
-	handlers.Register(b, spotifyClient)
+	mh := handlers.NewMessageHandler(spotifyClient)
+
+	mh.Register(b)
 
 	b.Start()
 	log.Print("Started...")

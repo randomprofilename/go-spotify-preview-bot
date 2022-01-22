@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type Track struct {
@@ -47,30 +46,25 @@ type trackInfoResponse struct {
 	DurationMs int    `json:"duration_ms"`
 }
 
-func getUrl(trackId string) string {
+func getTrackUrl(trackId string) string {
 	return fmt.Sprintf(
 		"https://api.spotify.com/v1/tracks/%v",
 		trackId,
 	)
 }
 
-func parseDuration(ms int) string {
-	msInMinute := 1000 * 60
-	seconds := ms % msInMinute / 1000
-	minutes := ms / msInMinute
-	return fmt.Sprintf("%d:%02d", minutes, seconds)
-}
+func parseTrack(rawTrack *trackInfoResponse, pic string) *Track {
+	return &Track{
+		Artists:   parseArtists(rawTrack, true),
+		Title:     rawTrack.Name,
+		Duration:  parseDuration(rawTrack.DurationMs),
+		AlbumName: rawTrack.Album.Name,
+		Year:      rawTrack.Album.ReleaseDate,
 
-func parseArtists(rawTrack *trackInfoResponse) string {
-	sb := strings.Builder{}
-	for i, artist := range rawTrack.Artists {
-		sb.WriteString(fmt.Sprintf("[%v](%v)", artist.Name, artist.Urls.Spotify))
-		if i != len(rawTrack.Artists)-1 {
-			sb.WriteString(", ")
-		}
+		AlbumUrl:    rawTrack.Album.Urls.Spotify,
+		AlbumPicUrl: pic,
+		TrackUrl:    rawTrack.Urls.Spotify,
 	}
-
-	return sb.String()
 }
 
 func (c *Client) GetTrack(trackId string) (*Track, error) {
@@ -79,7 +73,7 @@ func (c *Client) GetTrack(trackId string) (*Track, error) {
 		return nil, err
 	}
 
-	req, err := http.NewRequest("GET", getUrl(trackId), nil)
+	req, err := http.NewRequest("GET", getTrackUrl(trackId), nil)
 	if err != nil {
 		return nil, err
 	}
@@ -98,15 +92,5 @@ func (c *Client) GetTrack(trackId string) (*Track, error) {
 		albumPicUrl = rawTrack.Album.Images[0].Url
 	}
 
-	return &Track{
-		Artists:   parseArtists(rawTrack),
-		Title:     rawTrack.Name,
-		Duration:  parseDuration(rawTrack.DurationMs),
-		AlbumName: rawTrack.Album.Name,
-		Year:      rawTrack.Album.ReleaseDate,
-
-		AlbumUrl:    rawTrack.Album.Urls.Spotify,
-		AlbumPicUrl: albumPicUrl,
-		TrackUrl:    rawTrack.Urls.Spotify,
-	}, err
+	return parseTrack(rawTrack, albumPicUrl), err
 }
