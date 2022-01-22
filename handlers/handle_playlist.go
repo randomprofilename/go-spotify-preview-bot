@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"fmt"
+	"go-spotify-track-preview-bot/spotify_api"
 	"strings"
 
 	tb "gopkg.in/telebot.v3"
@@ -30,25 +31,11 @@ func (mh *MessageHandler) HandlePlaylist(c tb.Context, playlistId string) error 
 	sb.WriteString("\n")
 	const numberOfTracks = 6
 
-	for i, track := range playlist.Tracks {
-		if track.TrackUrl == "" {
-			continue
-		}
-		if !(i < numberOfTracks) {
-			sb.WriteString(fmt.Sprintf("• _and %d more..._\n", playlist.Total-numberOfTracks))
-			break
-		}
-
-		newTrackText := fmt.Sprintf(
-			"• %v - %v (%v)\n",
-			track.Artists,
-			track.Title,
-			track.Duration,
-		)
-
-		if len(newTrackText)+sb.Len() < maxMessageLength {
-			sb.WriteString(newTrackText)
-		}
+	playlistTextWithUrls := getTrackListWithLinks(playlist.Tracks, numberOfTracks, playlist.Total)
+	if len(playlistTextWithUrls) < maxMessageLength {
+		sb.WriteString(playlistTextWithUrls)
+	} else {
+		sb.WriteString(getTrackListWithoutLinks(playlist.Tracks, numberOfTracks, playlist.Total))
 	}
 
 	sb.WriteString("\n")
@@ -58,4 +45,47 @@ func (mh *MessageHandler) HandlePlaylist(c tb.Context, playlistId string) error 
 		File:    tb.FromURL(playlist.PlaylistPicUrl),
 		Caption: sb.String(),
 	}, tb.ModeMarkdown)
+}
+
+func getTrackListWithLinks(tracks []*spotify_api.Track, maxNumber int, total int) string {
+	sb := strings.Builder{}
+	for i, track := range tracks {
+		if track.TrackUrl == "" {
+			continue
+		}
+		if !(i < maxNumber) {
+			sb.WriteString(fmt.Sprintf("• _and %d more..._\n", total-maxNumber))
+			break
+		}
+
+		sb.WriteString(fmt.Sprintf(
+			"• %v - [%v](%v) (%v)\n",
+			track.Artists,
+			track.Title,
+			track.TrackUrl,
+			track.Duration,
+		))
+	}
+	return sb.String()
+}
+
+func getTrackListWithoutLinks(tracks []*spotify_api.Track, maxNumber int, total int) string {
+	sb := strings.Builder{}
+	for i, track := range tracks {
+		if track.TrackUrl == "" {
+			continue
+		}
+		if !(i < maxNumber) {
+			sb.WriteString(fmt.Sprintf("• _and %d more..._\n", total-maxNumber))
+			break
+		}
+
+		sb.WriteString(fmt.Sprintf(
+			"• %v - %v (%v)\n",
+			track.Artists,
+			track.Title,
+			track.Duration,
+		))
+	}
+	return sb.String()
 }
