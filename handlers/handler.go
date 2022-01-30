@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"go-spotify-track-preview-bot/metrics"
 	"go-spotify-track-preview-bot/spotify_api"
 	"log"
 
@@ -8,12 +9,14 @@ import (
 )
 
 type MessageHandler struct {
-	spotifyClient *spotify_api.Client
+	spotifyClient  *spotify_api.Client
+	metricsHandler *metrics.Metrics
 }
 
-func NewMessageHandler(spotifyClient *spotify_api.Client) *MessageHandler {
+func NewMessageHandler(spotifyClient *spotify_api.Client, metrics *metrics.Metrics) *MessageHandler {
 	return &MessageHandler{
-		spotifyClient: spotifyClient,
+		spotifyClient:  spotifyClient,
+		metricsHandler: metrics,
 	}
 }
 
@@ -27,6 +30,7 @@ func (mh *MessageHandler) Register(b *tb.Bot) {
 		}
 
 		if trackId != "" {
+			mh.metricsHandler.CountRequests(metrics.GetTrackEvent)
 			return mh.HandleTrack(c, trackId)
 		}
 
@@ -36,6 +40,7 @@ func (mh *MessageHandler) Register(b *tb.Bot) {
 		}
 
 		if playlistId != "" {
+			mh.metricsHandler.CountRequests(metrics.GetPlaylistEvent)
 			return mh.HandlePlaylist(c, playlistId)
 		}
 

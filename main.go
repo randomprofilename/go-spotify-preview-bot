@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"go-spotify-track-preview-bot/handlers"
+	"go-spotify-track-preview-bot/metrics"
 	"go-spotify-track-preview-bot/spotify_api"
 	"log"
 	"math/rand"
@@ -18,6 +20,8 @@ type appConfig struct {
 	webhookUrl          string
 	spotifyClientId     string
 	spotifyClientSecret string
+
+	PromConfig metrics.PromConfig
 }
 
 func createConfig() appConfig {
@@ -45,26 +49,41 @@ func createConfig() appConfig {
 		log.Fatal("Provide token in env variable 'SPOTIFY_CLIENT_SECRET'")
 	}
 
+	envPromURI, _ := os.LookupEnv("PROM_REMOTE_WRITE_URI")
+	envPromUsername, _ := os.LookupEnv("PROM_USERNAME")
+	envPromPassword, _ := os.LookupEnv("PROM_PASSWORD")
+
 	return appConfig{
 		port:                envPort,
 		token:               envToken,
 		webhookUrl:          envWebhookUrl,
 		spotifyClientId:     envSpotifyClientId,
 		spotifyClientSecret: envSpotifyClientSecret,
+
+		PromConfig: metrics.PromConfig{
+			PrometheusRemoteWriteURI:      envPromURI,
+			PrometheusRemoteWriteUsername: envPromUsername,
+			PrometheusRemoteWritePassword: envPromPassword,
+		},
 	}
 }
 
 func main() {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	config := createConfig()
 
 	var poller tb.Poller
 
 	if config.webhookUrl != "" {
+		log.Print("Connecting via webhook")
 		poller = &tb.Webhook{
 			Listen:   ":" + config.port,
 			Endpoint: &tb.WebhookEndpoint{PublicURL: config.webhookUrl},
 		}
 	} else {
+		log.Print("Connecting via longpoller")
 		poller = &tb.LongPoller{Timeout: 10 * time.Second}
 	}
 
@@ -94,10 +113,10 @@ func main() {
 		b.RemoveWebhook()
 	}
 
-	mh := handlers.NewMessageHandler(spotifyClient)
+	metricsHandler := metrics.InitMetrics(ctx, config.PromConfig)
+	mh := handlers.NewMessageHandler(spotifyClient, metricsHandler)
 
 	mh.Register(b)
-
-	b.Start()
 	log.Print("Started...")
+	b.Start()
 }
